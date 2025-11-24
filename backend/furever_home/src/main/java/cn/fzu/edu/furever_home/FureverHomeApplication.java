@@ -1,0 +1,15 @@
+package cn.fzu.edu.furever_home;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.mybatis.spring.annotation.MapperScan;
+
+@SpringBootApplication
+@MapperScan({"cn.fzu.edu.furever_home.auth.mapper","cn.fzu.edu.furever_home.animal.mapper","cn.fzu.edu.furever_home.post.mapper","cn.fzu.edu.furever_home.adopt.mapper"})
+public class FureverHomeApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(FureverHomeApplication.class, args);
+    }
+
+}
