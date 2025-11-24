@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: furever_home
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/furever_home?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:s88159868}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:2648874531@qq.com}
+    password: ${MAIL_PASSWORD:ilyakivojgnfebbj}
+    protocol: smtp
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 120MB
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+
+sa-token:
+  token-name: satoken
+  timeout: 2592000
+  is-log: true
+
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    connection-timeout: 60000 # 连接超时 60 秒（避免视频传输中断）
+    max-connections: 10000 # 最大并发连接数
+  http2:
+    enabled: true # 启用 HTTP/2（提升视频分片传输效率）
+logging:
+  level:
+    cn.dev33.satoken: DEBUG
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  secure: ${MINIO_SECURE:false}
+  bucket-images: ${MINIO_BUCKET_IMAGES:images}
+  bucket-videos: ${MINIO_BUCKET_VIDEOS:videos}
+  expiry-seconds: ${MINIO_EXPIRY_SECONDS:3600}
+storage:
+  stream:
+    buffer-size: ${STREAM_BUFFER_SIZE:104857600}
+
