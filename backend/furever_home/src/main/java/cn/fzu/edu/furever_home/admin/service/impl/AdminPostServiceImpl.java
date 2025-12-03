@@ -17,8 +17,10 @@ import cn.fzu.edu.furever_home.auth.entity.User;
 import cn.fzu.edu.furever_home.auth.mapper.UserMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -74,7 +76,7 @@ public class AdminPostServiceImpl implements AdminPostService {
         List<Comment> comments = commentMapper.selectList(
                 new LambdaQueryWrapper<Comment>()
                         .eq(Comment::getPostId, postId)
-                        .orderByAsc(Comment::getCreateTime));
+                        .orderByDesc(Comment::getCreateTime));
         List<AdminCommentDTO> commentDTOList = comments.stream()
                 .map(this::toCommentDTO)
                 .collect(Collectors.toList());
@@ -84,30 +86,45 @@ public class AdminPostServiceImpl implements AdminPostService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void approve(Integer reviewerId, Integer postId, String reason) {
         updateReviewAndPostStatus(reviewerId, postId, reason, ReviewStatus.APPROVED);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void reject(Integer reviewerId, Integer postId, String reason) {
         updateReviewAndPostStatus(reviewerId, postId, reason, ReviewStatus.REJECTED);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void delete(Integer postId) {
-        if (postId == null) return;
-        postMapper.deleteById(postId);
+        if (postId == null) {
+            return;
+        }
+        int deleted = postMapper.deleteById(postId);
+        if (deleted == 0) {
+            throw new IllegalStateException("帖子不存在或已被删除");
+        }
     }
-
-    // ==================== 内部辅助方法 ====================
 
     private PageResult<AdminPostSummaryDTO> pagePostsByStatus(ReviewStatus status, int page, int pageSize, String keyword) {
         Page<Post> mpPage = new Page<>(page, pageSize);
         LambdaQueryWrapper<Post> wrapper = new LambdaQueryWrapper<Post>()
                 .eq(Post::getReviewStatus, status)
-                .orderByDesc(Post::getCreateTime);
+                .orderByAsc(Post::getPostId);
         if (keyword != null && !keyword.isBlank()) {
-            wrapper.like(Post::getTitle, keyword.trim());
+            String kw = keyword.trim();
+            Integer id = tryParseInt(kw);
+            wrapper.and(w -> {
+                // 标题模糊搜索（标题中包含数字时也能被命中）
+                w.like(Post::getTitle, kw);
+                // 额外支持按帖子 ID 精确搜索
+                if (id != null) {
+                    w.or().eq(Post::getPostId, id);
+                }
+            });
         }
         Page<Post> resultPage = postMapper.selectPage(mpPage, wrapper);
         List<AdminPostSummaryDTO> records = resultPage.getRecords().stream()
@@ -157,6 +174,17 @@ public class AdminPostServiceImpl implements AdminPostService {
         if (postId == null) {
             throw new IllegalArgumentException("postId 不能为空");
         }
+        // 使用悲观锁（SELECT FOR UPDATE）锁定帖子记录，防止并发审核
+        Post current = postMapper.selectOne(
+                new LambdaQueryWrapper<Post>()
+                        .eq(Post::getPostId, postId)
+                        .last("FOR UPDATE"));
+        if (current == null) {
+            throw new IllegalStateException("帖子不存在");
+        }
+        if (current.getReviewStatus() != ReviewStatus.PENDING) {
+            throw new IllegalStateException("帖子已被其他管理员处理");
+        }
         // 1. 更新 review 表记录
         Review review = reviewMapper.selectOne(
                 new LambdaQueryWrapper<Review>()
@@ -173,11 +201,14 @@ public class AdminPostServiceImpl implements AdminPostService {
             reviewMapper.updateById(review);
         }
 
-        // 2. 更新帖子本身的审核状态
-        Post post = postMapper.selectById(postId);
-        if (post != null) {
-            post.setReviewStatus(status);
-            postMapper.updateById(post);
+        // 2. 基于状态条件更新帖子，双重检查确保并发安全
+        LambdaUpdateWrapper<Post> updateWrapper = new LambdaUpdateWrapper<Post>()
+                .eq(Post::getPostId, postId)
+                .eq(Post::getReviewStatus, ReviewStatus.PENDING)
+                .set(Post::getReviewStatus, status);
+        int affected = postMapper.update(null, updateWrapper);
+        if (affected == 0) {
+            throw new IllegalStateException("帖子状态已变化，请刷新后重试");
         }
     }
 
@@ -213,6 +244,17 @@ public class AdminPostServiceImpl implements AdminPostService {
                 .map(v -> v.replaceAll("^\"|\"$", ""))
                 .filter(v -> !v.isBlank())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 尝试将关键字解析为整数，失败则返回 null（用于按 ID 精确匹配）。
+     */
+    private Integer tryParseInt(String s) {
+        try {
+            return Integer.valueOf(s);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }
 
