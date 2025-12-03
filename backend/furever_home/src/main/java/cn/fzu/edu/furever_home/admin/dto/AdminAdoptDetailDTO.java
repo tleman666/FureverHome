@@ -31,6 +31,18 @@ public class AdminAdoptDetailDTO {
     @Schema(description = "申请人名称")
     private String userName;
 
+    @Schema(description = "申请人头像 URL")
+    private String userAvatar;
+
+    @Schema(description = "被申请用户ID（宠物发布者ID）")
+    private Integer targetUserId;
+
+    @Schema(description = "被申请用户名称（宠物发布者昵称）")
+    private String targetUserName;
+
+    @Schema(description = "被申请用户头像 URL")
+    private String targetUserAvatar;
+
     @Schema(description = "申请人居住地址（来自用户所在地或详细地址）")
     private String address;
 

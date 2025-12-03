@@ -25,16 +25,16 @@ public class AdminAnimalController {
 
     private final AdminAnimalService adminAnimalService;
 
-    @GetMapping("/pending-short")
+    @GetMapping("/pending")
     @SaCheckPermission("animal:read")
-    @Operation(summary = "获取待审核的短期宠物列表", description = "分页查询待审核的短期领养宠物，支持按宠物ID或名称搜索")
+    @Operation(summary = "获取待审核的宠物列表", description = "分页查询所有待审核的可领养宠物（包含短期和长期），支持按宠物ID或名称搜索")
     @Parameter(name = "Authorization", description = "认证令牌，格式为: Bearer {token}", in = ParameterIn.HEADER, required = true, example = "Bearer xxxxxx")
-    public Result<PageResult<AdminAnimalSummaryDTO>> listPendingShort(
+    public Result<PageResult<AdminAnimalSummaryDTO>> listPending(
             @Parameter(description = "页码，从1开始") @RequestParam(defaultValue = "1") int page,
             @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") int pageSize,
             @Parameter(description = "关键字：宠物ID 或 名称模糊") @RequestParam(required = false) String keyword) {
         PageResult<AdminAnimalSummaryDTO> data =
-                adminAnimalService.listPendingShortTerm(page, pageSize, keyword);
+                adminAnimalService.listPending(page, pageSize, keyword);
         return Result.success(data);
     }
 

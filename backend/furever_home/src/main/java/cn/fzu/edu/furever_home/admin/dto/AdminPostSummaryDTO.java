@@ -25,6 +25,9 @@ public class AdminPostSummaryDTO {
     @Schema(description = "作者昵称")
     private String authorName;
 
+    @Schema(description = "作者头像 URL")
+    private String authorAvatar;
+
     @Schema(description = "审核状态")
     private ReviewStatus reviewStatus;
 

@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.fzu.edu.furever_home.admin.dto.AdminPostDetailDTO;
 import cn.fzu.edu.furever_home.admin.dto.AdminPostSummaryDTO;
+import cn.fzu.edu.furever_home.admin.dto.AdminCommentDTO;
 import cn.fzu.edu.furever_home.admin.request.PostReviewRequest;
 import cn.fzu.edu.furever_home.admin.service.AdminPostService;
 import cn.fzu.edu.furever_home.common.result.PageResult;
@@ -55,6 +56,18 @@ public class AdminPostController {
     public Result<AdminPostDetailDTO> getDetail(@Parameter(description = "帖子ID") @PathVariable Integer id) {
         AdminPostDetailDTO dto = adminPostService.getDetail(id);
         return Result.success(dto);
+    }
+
+    @GetMapping("/{id}/comments")
+    @SaCheckPermission("post:read")
+    @Operation(summary = "分页获取帖子评论列表", description = "根据帖子ID分页查询评论列表")
+    @Parameter(name = "Authorization", description = "认证令牌，格式为: Bearer {token}", in = ParameterIn.HEADER, required = true, example = "Bearer xxxxxx")
+    public Result<PageResult<AdminCommentDTO>> listComments(
+            @Parameter(description = "帖子ID") @PathVariable Integer id,
+            @Parameter(description = "页码，从1开始") @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "每页数量") @RequestParam(defaultValue = "10") int pageSize) {
+        PageResult<AdminCommentDTO> data = adminPostService.listComments(id, page, pageSize);
+        return Result.success(data);
     }
 
     @PostMapping("/{id}/approve")

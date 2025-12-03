@@ -7,7 +7,12 @@ import cn.fzu.edu.furever_home.common.result.PageResult;
 
 public interface AdminAnimalService {
 
-    PageResult<AdminAnimalSummaryDTO> listPendingShortTerm(int page, int pageSize, String keyword);
+    /**
+     * 分页查询所有待审核的宠物（包含短期和长期）
+     */
+    PageResult<AdminAnimalSummaryDTO> listPending(int page, int pageSize, String keyword);
+
+    //PageResult<AdminAnimalSummaryDTO> listPendingShortTerm(int page, int pageSize, String keyword);
 
     PageResult<AdminAnimalSummaryDTO> listApprovedByType(int page, int pageSize, String keyword, AdoptionStatus adoptionStatus);
 

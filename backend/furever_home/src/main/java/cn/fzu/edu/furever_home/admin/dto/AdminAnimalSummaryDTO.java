@@ -43,6 +43,9 @@ public class AdminAnimalSummaryDTO {
     @Schema(description = "发布者昵称")
     private String ownerName;
 
+    @Schema(description = "发布者头像 URL")
+    private String ownerAvatar;
+
     @Schema(description = "创建时间")
     private LocalDateTime createdAt;
 }

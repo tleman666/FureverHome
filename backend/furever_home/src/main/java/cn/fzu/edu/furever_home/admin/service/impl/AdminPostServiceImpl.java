@@ -68,6 +68,7 @@ public class AdminPostServiceImpl implements AdminPostService {
             if (u != null) {
                 dto.setAuthorId(u.getUserId());
                 dto.setAuthorName(u.getUserName());
+                dto.setAuthorAvatar(u.getAvatarUrl());
                 dto.setAuthorEmail(u.getEmail());
             }
         }
@@ -83,6 +84,21 @@ public class AdminPostServiceImpl implements AdminPostService {
         dto.setComments(commentDTOList);
 
         return dto;
+    }
+
+    @Override
+    public PageResult<AdminCommentDTO> listComments(Integer postId, int page, int pageSize) {
+        Page<Comment> mpPage = new Page<>(page, pageSize);
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<Comment>()
+                .eq(Comment::getPostId, postId)
+                // 点赞数高的评论排前面，相同点赞数再按时间倒序
+                .orderByDesc(Comment::getLikeCount)
+                .orderByDesc(Comment::getCreateTime);
+        Page<Comment> resultPage = commentMapper.selectPage(mpPage, wrapper);
+        List<AdminCommentDTO> records = resultPage.getRecords().stream()
+                .map(this::toCommentDTO)
+                .collect(Collectors.toList());
+        return new PageResult<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal(), records);
     }
 
     @Override
@@ -143,6 +159,7 @@ public class AdminPostServiceImpl implements AdminPostService {
             User u = userMapper.selectById(p.getUserId());
             if (u != null) {
                 dto.setAuthorName(u.getUserName());
+                dto.setAuthorAvatar(u.getAvatarUrl());
             }
         }
         dto.setReviewStatus(p.getReviewStatus());
@@ -165,6 +182,7 @@ public class AdminPostServiceImpl implements AdminPostService {
             User u = userMapper.selectById(c.getUserId());
             if (u != null) {
                 dto.setUserName(u.getUserName());
+                dto.setUserAvatar(u.getAvatarUrl());
             }
         }
         return dto;
