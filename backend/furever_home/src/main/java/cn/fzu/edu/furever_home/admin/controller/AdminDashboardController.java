@@ -1,5 +1,6 @@
 package cn.fzu.edu.furever_home.admin.controller;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.fzu.edu.furever_home.admin.dto.DashboardStatisticsDTO;
 import cn.fzu.edu.furever_home.admin.service.AdminDashboardService;
 import cn.fzu.edu.furever_home.common.result.Result;
@@ -15,14 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/admin/dashboard")
 @RequiredArgsConstructor
-@Tag(name = "管理后台-工作台")
+@Tag(name = "管理后台-工作台", description = "首页统计数据")
 public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;
 
     @GetMapping("/statistics")
-    @Operation(summary = "获取管理后台首页统计数据")
-    @Parameter(name = "Authorization", description = "认证令牌，格式为: Bearer {token}", in = ParameterIn.HEADER, required = true, example = "Bearer {{token}}")
+    @SaCheckPermission("admin:dashboard:read")
+    @Operation(summary = "获取管理后台首页统计数据", description = "返回帖子、宠物及领养申请的汇总数量")
+    @Parameter(name = "Authorization", description = "认证令牌，格式为: Bearer {token}", in = ParameterIn.HEADER, required = true, example = "Bearer xxxxxx")
     public Result<DashboardStatisticsDTO> statistics() {
         DashboardStatisticsDTO statistics = adminDashboardService.getStatistics();
         return Result.success(statistics);
