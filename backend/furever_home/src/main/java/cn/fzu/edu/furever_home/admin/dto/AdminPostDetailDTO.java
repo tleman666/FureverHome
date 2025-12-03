@@ -32,6 +32,9 @@ public class AdminPostDetailDTO {
     @Schema(description = "发布者邮箱")
     private String authorEmail;
 
+    @Schema(description = "发布者头像")
+    private String authorAvatar;
+
     @Schema(description = "审核状态")
     private ReviewStatus reviewStatus;
 

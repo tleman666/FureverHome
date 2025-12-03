@@ -92,12 +92,22 @@ public class AdminAdoptServiceImpl implements AdminAdoptService {
                 dto.setAnimalName(animal.getAnimalName());
                 dto.setAnimalSpecies(animal.getSpecies());
                 dto.setAnimalGender(animal.getGender());
+                // 被申请用户 = 宠物发布者
+                if (animal.getUserId() != null) {
+                    User owner = userMapper.selectById(animal.getUserId());
+                    if (owner != null) {
+                        dto.setTargetUserId(owner.getUserId());
+                        dto.setTargetUserName(owner.getUserName());
+                        dto.setTargetUserAvatar(owner.getAvatarUrl());
+                    }
+                }
             }
         }
         if (adopt.getUserId() != null) {
             User user = userMapper.selectById(adopt.getUserId());
             if (user != null) {
                 dto.setUserName(user.getUserName());
+                dto.setUserAvatar(user.getAvatarUrl());
                 dto.setAddress(user.getLocation());
             }
         }
@@ -183,12 +193,22 @@ public class AdminAdoptServiceImpl implements AdminAdoptService {
             Animal animal = animalMapper.selectById(a.getAnimalId());
             if (animal != null) {
                 dto.setAnimalName(animal.getAnimalName());
+                // 被申请用户 = 宠物发布者
+                if (animal.getUserId() != null) {
+                    User owner = userMapper.selectById(animal.getUserId());
+                    if (owner != null) {
+                        dto.setTargetUserId(owner.getUserId());
+                        dto.setTargetUserName(owner.getUserName());
+                        dto.setTargetUserAvatar(owner.getAvatarUrl());
+                    }
+                }
             }
         }
         if (a.getUserId() != null) {
             User user = userMapper.selectById(a.getUserId());
             if (user != null) {
                 dto.setUserName(user.getUserName());
+                dto.setUserAvatar(user.getAvatarUrl());
             }
         }
         return dto;

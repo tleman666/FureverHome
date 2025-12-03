@@ -32,11 +32,10 @@ public class AdminAnimalServiceImpl implements AdminAnimalService {
     private final UserMapper userMapper;
 
     @Override
-    public PageResult<AdminAnimalSummaryDTO> listPendingShortTerm(int page, int pageSize, String keyword) {
+    public PageResult<AdminAnimalSummaryDTO> listPending(int page, int pageSize, String keyword) {
         Page<Animal> mpPage = new Page<>(page, pageSize);
         LambdaQueryWrapper<Animal> wrapper = new LambdaQueryWrapper<Animal>()
                 .eq(Animal::getReviewStatus, ReviewStatus.PENDING)
-                .eq(Animal::getAdoptionStatus, AdoptionStatus.SHORT_TERM)
                 .orderByAsc(Animal::getAnimalId);
         if (keyword != null && !keyword.isBlank()) {
             String kw = keyword.trim();
@@ -56,6 +55,32 @@ public class AdminAnimalServiceImpl implements AdminAnimalService {
                 .collect(Collectors.toList());
         return new PageResult<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal(), records);
     }
+
+    //@Override
+    //public PageResult<AdminAnimalSummaryDTO> listPendingShortTerm(int page, int pageSize, String keyword) {
+    //    Page<Animal> mpPage = new Page<>(page, pageSize);
+    //    LambdaQueryWrapper<Animal> wrapper = new LambdaQueryWrapper<Animal>()
+    //            .eq(Animal::getReviewStatus, ReviewStatus.PENDING)
+    //            .eq(Animal::getAdoptionStatus, AdoptionStatus.SHORT_TERM)
+    //            .orderByAsc(Animal::getAnimalId);
+    //    if (keyword != null && !keyword.isBlank()) {
+    //        String kw = keyword.trim();
+    //        Integer id = tryParseInt(kw);
+    //        wrapper.and(w -> {
+    //            // 按宠物名称模糊搜索
+    //            w.like(Animal::getAnimalName, kw);
+    //            // 额外支持按动物 ID 精确搜索
+    //            if (id != null) {
+    //                w.or().eq(Animal::getAnimalId, id);
+    //            }
+    //        });
+    //    }
+    //    Page<Animal> resultPage = animalMapper.selectPage(mpPage, wrapper);
+    //    List<AdminAnimalSummaryDTO> records = resultPage.getRecords().stream()
+    //            .map(this::toSummaryDTO)
+    //            .collect(Collectors.toList());
+    //    return new PageResult<>(resultPage.getCurrent(), resultPage.getSize(), resultPage.getTotal(), records);
+    //}
 
     @Override
     public PageResult<AdminAnimalSummaryDTO> listApprovedByType(int page, int pageSize, String keyword, AdoptionStatus adoptionStatus) {
@@ -109,6 +134,7 @@ public class AdminAnimalServiceImpl implements AdminAnimalService {
             if (u != null) {
                 dto.setOwnerId(u.getUserId());
                 dto.setOwnerName(u.getUserName());
+                dto.setOwnerAvatar(u.getAvatarUrl());
             }
         }
         return dto;
@@ -154,6 +180,7 @@ public class AdminAnimalServiceImpl implements AdminAnimalService {
             User u = userMapper.selectById(a.getUserId());
             if (u != null) {
                 dto.setOwnerName(u.getUserName());
+                dto.setOwnerAvatar(u.getAvatarUrl());
             }
         }
         return dto;

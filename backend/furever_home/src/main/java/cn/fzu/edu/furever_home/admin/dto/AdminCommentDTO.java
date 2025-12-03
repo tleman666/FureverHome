@@ -24,6 +24,9 @@ public class AdminCommentDTO {
     @Schema(description = "评论者昵称")
     private String userName;
 
+    @Schema(description = "评论者头像 URL")
+    private String userAvatar;
+
     @Schema(description = "点赞数")
     private Integer likeCount;
 
